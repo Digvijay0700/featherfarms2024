@@ -1,6 +1,7 @@
 import os
 import flask
 import io
+import base64  # Add this import
 
 try:
     from flask_cors import CORS
@@ -36,8 +37,9 @@ def process_image():
         img_io = io.BytesIO()
         white_bg_rgb.save(img_io, 'JPEG')
         img_io.seek(0)
+        base64_image = base64.b64encode(img_io.read()).decode('utf-8')
 
-        return flask.send_file(img_io, mimetype='image/jpeg')
+        return flask.jsonify({"base64_image": base64_image})
 
     except Exception as e:
         print(f"Error processing image: {e}")
