@@ -1,10 +1,24 @@
 import os
 import flask
-from PIL import Image
-from rembg import remove
 import io
 
+try:
+    from flask_cors import CORS
+except ImportError as e:
+    raise ImportError("flask_cors library is not installed. Please install it using 'pip install flask-cors'.") from e
+
+try:
+    from PIL import Image
+except ImportError as e:
+    raise ImportError("Pillow library is not installed. Please install it using 'pip install pillow'.") from e
+
+try:
+    from rembg import remove
+except ImportError as e:
+    raise ImportError("rembg library is not installed. Please install it using 'pip install rembg'.") from e
+
 app = flask.Flask(__name__)
+CORS(app)
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
@@ -22,6 +36,8 @@ def process_image():
         img_io = io.BytesIO()
         white_bg_rgb.save(img_io, 'JPEG')
         img_io.seek(0)
+
+        return flask.send_file(img_io, mimetype='image/jpeg')
 
     except Exception as e:
         print(f"Error processing image: {e}")
