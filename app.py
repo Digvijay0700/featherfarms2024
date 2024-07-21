@@ -1,12 +1,10 @@
 import os
 import flask
-from flask_cors import CORS
 from PIL import Image
 from rembg import remove
 import io
 
 app = flask.Flask(__name__)
-CORS(app)
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
