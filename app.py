@@ -1,33 +1,20 @@
-import os
-import flask
+import base64
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from PIL import Image
+from rembg import remove
 import io
-import base64  # Add this import
 
-try:
-    from flask_cors import CORS
-except ImportError as e:
-    raise ImportError("flask_cors library is not installed. Please install it using 'pip install flask-cors'.") from e
-
-try:
-    from PIL import Image
-except ImportError as e:
-    raise ImportError("Pillow library is not installed. Please install it using 'pip install pillow'.") from e
-
-try:
-    from rembg import remove
-except ImportError as e:
-    raise ImportError("rembg library is not installed. Please install it using 'pip install rembg'.") from e
-
-app = flask.Flask(__name__)
+app = Flask(__name__)
 CORS(app)
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
     try:
-        if 'image' not in flask.request.files:
-            return flask.jsonify({"error": "No image file found"}), 400
+        if 'image' not in request.files:
+            return jsonify({"error": "No image file found"}), 400
 
-        image_file = flask.request.files['image']
+        image_file = request.files['image']
         img = Image.open(image_file.stream)
         img_without_bg = remove(img)
         white_bg = Image.new("RGBA", img_without_bg.size, (255, 255, 255, 255))
@@ -37,14 +24,15 @@ def process_image():
         img_io = io.BytesIO()
         white_bg_rgb.save(img_io, 'JPEG')
         img_io.seek(0)
-        base64_image = base64.b64encode(img_io.read()).decode('utf-8')
 
-        return flask.jsonify({"base64_image": base64_image})
+        base64_image = base64.b64encode(img_io.getvalue()).decode('utf-8')
+
+        return jsonify({"base64_image": base64_image})
 
     except Exception as e:
         print(f"Error processing image: {e}")
-        return flask.jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000)
